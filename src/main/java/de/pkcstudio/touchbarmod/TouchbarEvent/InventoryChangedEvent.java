@@ -3,10 +3,10 @@ package de.pkcstudio.touchbarmod.TouchbarEvent;
 import net.minecraft.item.ItemStack;
 
 public class InventoryChangedEvent {
-    public int Slot;
-    public ItemStack ItemStack;
     
-
+    private int Slot;
+    private ItemStack ItemStack;
+    
     public InventoryChangedEvent(int slot, ItemStack itemstack){
         this.Slot = slot;
         this.ItemStack = itemstack;

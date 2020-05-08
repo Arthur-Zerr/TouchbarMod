@@ -12,7 +12,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-
 @Mod("touchbar")
 public class TouchbarMod
 {
@@ -28,12 +27,15 @@ public class TouchbarMod
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(new TouchbarEventsManager());
+        MinecraftForge.EVENT_BUS.register(TouchbarEventsManager.getInstance());
     }
 
     private void setup(final FMLCommonSetupEvent event)
     {
         touchbarWrapper = TouchbarWrapper.getInstance();
+        TouchbarLogic touchbarLogic = new TouchbarLogic();
+        TouchbarEventsManager.getInstance().addListener(touchbarLogic);
+        touchbarWrapper.ShowMinecraftLogo();
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) 

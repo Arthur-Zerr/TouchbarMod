@@ -1,9 +1,17 @@
 package de.pkcstudio.touchbarmod.TouchbarWrapper;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFWNativeCocoa;
+
+import de.pkcstudio.touchbarmod.TouchbarHelper.ImageConvert;
 
 import com.thizzer.jtouchbar.JTouchBar;
 import com.thizzer.jtouchbar.common.Color;
@@ -17,9 +25,11 @@ import net.minecraft.client.Minecraft;
 public class TouchbarWrapper {
 
     public JTouchBar touchbar = new JTouchBar();
-    public List<CustomTouchBarItem> customItems = new ArrayList<CustomTouchBarItem>();
+	public List<CustomTouchBarItem> customItems = new ArrayList<CustomTouchBarItem>();
 	
-	public static TouchbarWrapper touchbarWrapper;
+    private static final Logger LOGGER = LogManager.getLogger();
+	
+	private static TouchbarWrapper touchbarWrapper;
 	/**
 	 * The singleton of the TouchbarWrapper
 	 * @return the singleton of the TouchbarWrapper
@@ -48,7 +58,21 @@ public class TouchbarWrapper {
     	touchbar.show(
         		GLFWNativeCocoa.glfwGetCocoaWindow(window)
         	);
-    }
+	}
+	
+	public void ShowMinecraftLogo(){
+		TouchBarButton minecraftLogo = new TouchBarButton();
+		minecraftLogo.setTitle("Minecraft");
+		try {
+			File logoPath = new File("resources/Minecraft-Logo.png");
+			BufferedImage image = ImageIO.read(logoPath);
+			minecraftLogo.setImage(new Image(ImageConvert.getImgBytes(image)));
+		} catch (Exception e) {
+			LOGGER.error(e);	
+		}
+
+		touchbar.addItem(new TouchBarItem("minecraftLogo", minecraftLogo));
+	}
 	
 	/**
 	 * Updates or Creates the Touchbar Item with the corresponding key and other information

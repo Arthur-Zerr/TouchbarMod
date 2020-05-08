@@ -20,7 +20,7 @@ import net.minecraftforge.client.extensions.IForgeBakedModel;
 
 public class ImageConvert {
     
-    public byte[] GetTexture(ItemStack item) {
+    public static byte[] GetTexture(ItemStack item) {
 		IForgeBakedModel itemModel = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getItemModel(item);
 
 		TextureAtlasSprite sprite = itemModel.getParticleTexture(null);
@@ -51,7 +51,7 @@ public class ImageConvert {
 		return getImgBytes(bufferedimage);
 	}
 
-	private byte[] getImgBytes(BufferedImage image) {
+	public static byte[] getImgBytes(BufferedImage image) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			ImageIO.write(image, "PNG", baos);

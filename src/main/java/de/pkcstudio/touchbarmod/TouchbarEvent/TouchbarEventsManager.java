@@ -1,7 +1,7 @@
 package de.pkcstudio.touchbarmod.TouchbarEvent;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.TickEvent;
@@ -13,9 +13,21 @@ import net.minecraftforge.fml.LogicalSide;
 
 public class TouchbarEventsManager {
 
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	private String[] itemInHotbar;
+	private List<ITouchbarEvent> listeners = new ArrayList<ITouchbarEvent>();
+	
+	private static TouchbarEventsManager touchbarEventsManager;
+	/**
+	 * The singleton of the TouchbarEventsManager
+	 * @return the singleton of the TouchbarEventsManager
+	 */
+	public static TouchbarEventsManager getInstance(){
+		if(touchbarEventsManager == null){
+			touchbarEventsManager = new TouchbarEventsManager();
+		}
+		return touchbarEventsManager;
+	}
+
 
 	@SubscribeEvent
 	public void onWorldLoad(Load event) {
@@ -35,6 +47,7 @@ public class TouchbarEventsManager {
 				String itemName = itemstack.getDisplayName().getString();
 
 				if (itemInHotbar[i].equals(itemName) == false) {
+					itemInHotbar[i] = itemName;
 					onInventoryChangedEvent(new InventoryChangedEvent(i, itemstack));
 				}
 			}
@@ -47,14 +60,23 @@ public class TouchbarEventsManager {
 	 */
 	public void onInventoryChangedEvent(InventoryChangedEvent inventoryChangedEvent)
 	{
-
+		for (ITouchbarEvent event : listeners) {
+			event.onInventoryChangedEvent(inventoryChangedEvent);
+		}
 	}
 
+	/**
+	 * Add a Listener to the event list
+	 * @param listener 
+	 */
+	public void addListener(ITouchbarEvent listener)
+	{
+		listeners.add(listener);
+	}
 	/**
 	 * Reset the items in the list
 	 */
 	private void Reset(){
-		LOGGER.info("Hotbar Items Cleared");
 		itemInHotbar = new String[10];
 		for (int i = 0; i < 9; i++) {
 			itemInHotbar[i] = "";
