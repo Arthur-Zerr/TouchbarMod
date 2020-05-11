@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 public class TouchbarLogic implements ITouchbarEvent {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private final Minecraft INSTANCE = Minecraft.getInstance();
     private TouchbarWrapper touchbarWrapper;
 
     public TouchbarLogic() {
@@ -20,10 +21,11 @@ public class TouchbarLogic implements ITouchbarEvent {
 
     @Override
     public void onInventoryChangedEvent(InventoryChangedEvent inventoryChangedEvent) {
-        Minecraft.getInstance().getProfiler().startSection("Touchbar Update");
-        touchbarWrapper.UpSertTouchbarItem(null, "item_" + inventoryChangedEvent.getSlot(), inventoryChangedEvent.getItemStack().getDisplayName().getString(), null);//ImageConvert.GetTexture(inventoryChangedEvent.getItemStack()));
+        INSTANCE.getProfiler().startSection("Touchbar Update");
+        touchbarWrapper.UpSertTouchbarItem(null, "item_" + inventoryChangedEvent.getSlot(), inventoryChangedEvent.getItemStack().getDisplayName().getString(),ImageConvert.GetTexture(inventoryChangedEvent.getItemStack()));
         touchbarWrapper.FinishedUpdate();
+
         LOGGER.info("Hotbar Changed Slot: " + inventoryChangedEvent.getSlot() + ", Item: " + inventoryChangedEvent.getItemStack().getDisplayName().getString());
-        Minecraft.getInstance().getProfiler().endSection();
+        INSTANCE.getProfiler().endSection();
     }
 }

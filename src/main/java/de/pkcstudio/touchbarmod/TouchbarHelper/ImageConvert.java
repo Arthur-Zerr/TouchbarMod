@@ -10,7 +10,6 @@ import java.nio.IntBuffer;
 
 import javax.imageio.ImageIO;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import org.lwjgl.BufferUtils;
@@ -19,17 +18,20 @@ import org.lwjgl.opengl.GL12;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.Matrix4f;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.extensions.IForgeBakedModel;
 
-public class ImageConvert {
+public class ImageConvert{
 	
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -116,24 +118,25 @@ public class ImageConvert {
 		int height = sprite.getHeight();
 
 		Framebuffer spriteFrame = new Framebuffer(width, height, true, true);
+		spriteFrame.setFramebufferColor(0, 0, 0, 1);
 
-		spriteFrame.bindFramebuffer(false);
-		RenderSystem.clearColor(0f, 0f, 0f, 1);
-		RenderSystem.clear(GL11.GL_COLOR_BUFFER_BIT, true);
-		
 		RenderSystem.pushMatrix();
+		spriteFrame.bindFramebuffer(true);
+		TouchbarRenderSystem.saveGLState();
+		RenderSystem.clear(16640, true);
+		RenderSystem.clearColor(0, 0, 0, 1);
 
-		float xScale = ((1.0f * Minecraft.getInstance().func_228018_at_().getWidth() / (1.0f * Minecraft.getInstance().func_228018_at_().getHeight())));
-		RenderSystem.scalef(xScale,1, 1);
+		RenderSystem.enableTexture();
+		RenderSystem.scalef(5,1, 1);
 
-		Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(item, 0, 0);
+		Minecraft.getInstance().getItemRenderer().renderItemOverlays(Minecraft.getInstance().fontRenderer, item, 0, 0);
+		TouchbarRenderSystem.renderStack(0, 0, item);
 
+		TouchbarRenderSystem.loadGLState();
 		RenderSystem.popMatrix();
 
-		spriteFrame.framebufferRender(width, height);
-
+		spriteFrame.bindFramebufferTexture();
 		IntBuffer pixels = BufferUtils.createIntBuffer(width * height);
-		RenderSystem.bindTexture(spriteFrame.framebufferTexture);
 
 		GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, pixels);
 
@@ -143,9 +146,7 @@ public class ImageConvert {
 		BufferedImage bufferedimage = new BufferedImage(width, height, 2);
 		bufferedimage.setRGB(0, 0, width, height, data, 0, width);
 
-		spriteFrame.bindFramebuffer(false);
-		Minecraft.getInstance().getFramebuffer().bindFramebuffer(true);
-
+		spriteFrame.unbindFramebuffer();
 		return getImgBytes(bufferedimage);
 	}
 
