@@ -1,26 +1,39 @@
 package de.pkcstudio.touchbarmod.TouchbarHelper;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.IntBuffer;
 
 import javax.imageio.ImageIO;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.extensions.IForgeBakedModel;
 
 public class ImageConvert {
-    
-    public static byte[] GetTexture(ItemStack item) {
+	
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    public static byte[] GetTextureOld(ItemStack item) {
 		IForgeBakedModel itemModel = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getItemModel(item);
 
 		TextureAtlasSprite sprite = itemModel.getParticleTexture(null);
@@ -50,6 +63,92 @@ public class ImageConvert {
 
 		return getImgBytes(bufferedimage);
 	}
+
+	public static byte[] GetTextureOldOld(ItemStack item){
+		if(item.getDisplayName().getString().equals("Air")) return null;
+		RenderSystem.pushMatrix();
+
+		IForgeBakedModel itemModel = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getItemModel(item);
+
+		TextureAtlasSprite sprite = itemModel.getParticleTexture(null);
+	
+		AtlasTexture texture = sprite.func_229241_m_();
+
+		try {
+			texture.loadTexture(Minecraft.getInstance().getResourceManager());
+			
+		} catch (Exception e) {
+			LOGGER.catching(e);
+			RenderSystem.popMatrix();
+			return null;
+		}
+
+		int width = sprite.getWidth();
+		int height = sprite.getHeight();
+		int size = width * height;
+
+		BufferedImage bufferedimage = new BufferedImage(width, height, 2);
+		IntBuffer buffer = BufferUtils.createIntBuffer(16*16);
+		int[] data = new int[size];
+
+		RenderSystem.enableTexture();
+
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.getGlTextureId());
+		LOGGER.info("Some shit Info: " + texture.getGlTextureId());
+
+		GL11.glReadPixels((int)sprite.getMinU(), (int)sprite.getMinV(), sprite.getWidth(), sprite.getWidth(), GL11.GL_RGBA, GL11.GL_INT, buffer);
+		//GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_INT, buffer);
+
+		buffer.get(data);
+		bufferedimage.setRGB(0, 0, width, height, data, 0, width);
+
+		RenderSystem.disableTexture();
+		RenderSystem.popMatrix();
+
+		return getImgBytes(bufferedimage);
+	}
+
+	public static byte[] GetTexture(ItemStack item){
+		IForgeBakedModel itemModel = Minecraft.getInstance().getItemRenderer().getItemModelMesher().getItemModel(item);
+		TextureAtlasSprite sprite = itemModel.getParticleTexture(null);
+
+		int width = sprite.getWidth();
+		int height = sprite.getHeight();
+
+		Framebuffer spriteFrame = new Framebuffer(width, height, true, true);
+
+		spriteFrame.bindFramebuffer(false);
+		RenderSystem.clearColor(0f, 0f, 0f, 1);
+		RenderSystem.clear(GL11.GL_COLOR_BUFFER_BIT, true);
+		
+		RenderSystem.pushMatrix();
+
+		float xScale = ((1.0f * Minecraft.getInstance().func_228018_at_().getWidth() / (1.0f * Minecraft.getInstance().func_228018_at_().getHeight())));
+		RenderSystem.scalef(xScale,1, 1);
+
+		Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(item, 0, 0);
+
+		RenderSystem.popMatrix();
+
+		spriteFrame.framebufferRender(width, height);
+
+		IntBuffer pixels = BufferUtils.createIntBuffer(width * height);
+		RenderSystem.bindTexture(spriteFrame.framebufferTexture);
+
+		GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, pixels);
+
+		int[] data = new int[width * height];
+		pixels.get(data);
+
+		BufferedImage bufferedimage = new BufferedImage(width, height, 2);
+		bufferedimage.setRGB(0, 0, width, height, data, 0, width);
+
+		spriteFrame.bindFramebuffer(false);
+		Minecraft.getInstance().getFramebuffer().bindFramebuffer(true);
+
+		return getImgBytes(bufferedimage);
+	}
+
 
 	public static byte[] getImgBytes(BufferedImage image) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

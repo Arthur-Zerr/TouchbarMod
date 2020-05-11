@@ -42,7 +42,7 @@ public class TouchbarEventsManager {
 	@SubscribeEvent
 	public void onPlayerTick(PlayerTickEvent event) {
 		if (event.phase == TickEvent.Phase.START && event.side == LogicalSide.CLIENT) {
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < 9; i++) {
 				ItemStack itemstack = event.player.inventory.getStackInSlot(i);
 				String itemName = itemstack.getDisplayName().getString();
 

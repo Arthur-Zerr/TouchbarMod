@@ -27,6 +27,8 @@ public class TouchbarWrapper {
     public JTouchBar touchbar = new JTouchBar();
 	public List<CustomTouchBarItem> customItems = new ArrayList<CustomTouchBarItem>();
 	
+	private final boolean SHOW_TEXT = false;
+
     private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static TouchbarWrapper touchbarWrapper;
@@ -48,8 +50,7 @@ public class TouchbarWrapper {
 	/**
 	* Reloads the Touchbar
 	*/
-    public void Reload() 
-    {
+    public void Reload() {
     	long window = Minecraft.getInstance().func_228018_at_().getHandle();
     	touchbar.hide(
     			GLFWNativeCocoa.glfwGetCocoaWindow(window)
@@ -81,33 +82,30 @@ public class TouchbarWrapper {
 	 * @param showText  or not to shown text on the TouchbarButton
 	 * @param img The image shown on the TouchbarButton
 	 */
-    public void UpdateTouchbarItem(TouchBarViewAction action, String key, String text, byte[] img) {
+    public void UpSertTouchbarItem(TouchBarViewAction action, String key, String text, byte[] img) {
     	CustomTouchBarItem tempItem = FindItemByKey(key);
     	
     	if(tempItem != null) {
             customItems.remove(tempItem);
     		tempItem.item = null;
-            tempItem.item = createTouchBarButton(action, text, img, false);
+            tempItem.item = createTouchBarButton(action, text, img, SHOW_TEXT);
             customItems.add(Integer.parseInt(key.substring(5)), tempItem);
     	} else {
-            customItems.add(new CustomTouchBarItem(key, createTouchBarButton(action, text, img, false)));
+            customItems.add(new CustomTouchBarItem(key, createTouchBarButton(action, text, img, SHOW_TEXT)));
     	}
 	}
 	
     /**
 	 * Updates the Touchbar with the Changes made
 	 */
-    public void FinishedUpdate()
-    {
+    public void FinishedUpdate() {
         UpdateTouchbar();
     }
     
-    private void UpdateTouchbar()
-    {
+    private void UpdateTouchbar() {
     	List<TouchBarItem> tempList = new ArrayList<TouchBarItem>();
     	Reload();
-    	for(CustomTouchBarItem item : customItems)
-    	{
+    	for(CustomTouchBarItem item : customItems) {
     		tempList.add(new TouchBarItem(item.key, item.item, true));
     	}
 
@@ -129,12 +127,14 @@ public class TouchbarWrapper {
 		if(action != null){
 			tempButton.setAction(action);
 		}
-		if(img != null)
-		{
+		if(img != null) {
 			Image image = new Image(img);
 			tempButton.setImage(image);
 		}
 		if(showText == true){
+			if(text.equals("Air")){
+				text = "";
+			}
 			tempButton.setTitle(text);
 		}
 
@@ -146,8 +146,7 @@ public class TouchbarWrapper {
      * @return The item with the corresponding key or null when the item is not found
 	 * @param key Key of the item
     */
-    private CustomTouchBarItem FindItemByKey(String key)
-    {
+    private CustomTouchBarItem FindItemByKey(String key) {
     	if(customItems == null)
     	{
     		throw new NullPointerException("CustomTouchbarItems list is null");
